@@ -260,4 +260,78 @@ describe("RecipeRepository", () => {
       expect(putBody.recipeYieldQuantity).toBe(4)
     })
   })
+
+  // ── update — préservation des étapes ────────────────────────────────────────
+
+  describe("update — recipeInstructions", () => {
+    const baseForm = {
+      name: "Test",
+      description: "",
+      prepTime: "0",
+      performTime: "0",
+      totalTime: "0",
+      seasons: [] as string[],
+      categories: [] as Array<{ id: string; name: string; slug: string }>,
+      tags: [] as Array<{ id: string; name: string; slug: string }>,
+      recipeIngredient: [],
+      recipeInstructions: [],
+    }
+
+    const current = {
+      id: "r1",
+      slug: "test",
+      name: "Test",
+      tags: [],
+      recipeInstructions: [
+        {
+          id: "step-1",
+          title: "Préparation",
+          text: "Mélanger",
+          ingredientReferences: [{ referenceId: "ref-1" }],
+        },
+      ],
+    }
+
+    beforeEach(() => {
+      client.get.mockImplementation((url: string) => {
+        if (url.includes("/organizers/tags")) return Promise.resolve({ items: [] })
+        return Promise.resolve(current)
+      })
+      client.put.mockResolvedValue({ id: "r1" })
+    })
+
+    it("préserve les ingrédients associés et le titre d'une étape existante", async () => {
+      await repo.update("test", {
+        ...baseForm,
+        recipeInstructions: [{ id: "step-1", text: "Mélanger longuement" }],
+      })
+      const putBody = client.put.mock.calls[0][1]
+      expect(putBody.recipeInstructions[0]).toMatchObject({
+        id: "step-1",
+        title: "Préparation",
+        text: "Mélanger longuement",
+        ingredientReferences: [{ referenceId: "ref-1" }],
+      })
+    })
+
+    it("génère un id pour une nouvelle étape, sans associations", async () => {
+      await repo.update("test", {
+        ...baseForm,
+        recipeInstructions: [{ text: "Enfourner" }],
+      })
+      const putBody = client.put.mock.calls[0][1]
+      expect(putBody.recipeInstructions[0].id).toBeTruthy()
+      expect(putBody.recipeInstructions[0].text).toBe("Enfourner")
+      expect(putBody.recipeInstructions[0].ingredientReferences).toBeUndefined()
+    })
+
+    it("ignore les étapes vides", async () => {
+      await repo.update("test", {
+        ...baseForm,
+        recipeInstructions: [{ id: "step-1", text: "Mélanger" }, { text: "   " }],
+      })
+      const putBody = client.put.mock.calls[0][1]
+      expect(putBody.recipeInstructions).toHaveLength(1)
+    })
+  })
 })
