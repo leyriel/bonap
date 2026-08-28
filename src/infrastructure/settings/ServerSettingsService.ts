@@ -19,6 +19,7 @@ export const SERVER_SETTINGS_KEYS = [
   'bonap.familySize',
   'bonap_planning_prefs',
   'bonap.featureFlags',
+  'bonap_home_page',
 ] as const
 
 export type ServerSettingsKey = (typeof SERVER_SETTINGS_KEYS)[number]

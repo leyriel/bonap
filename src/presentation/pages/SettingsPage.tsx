@@ -13,6 +13,7 @@ import { usePlanningPreferences } from "../hooks/usePlanningPreferences.ts"
 import { useFamilySize } from "../hooks/useFamilySize.ts"
 import { useFeatureFlags } from "../hooks/useFeatureFlags.ts"
 import { useDefaultHabituels } from "../hooks/useDefaultHabituels.ts"
+import { useHomePage } from "../hooks/useHomePage.ts"
 import { ACCENT_COLORS } from "../../infrastructure/theme/ThemeService.ts"
 import type { Theme } from "../../infrastructure/theme/ThemeService.ts"
 import { cn } from "../../lib/utils.ts"
@@ -124,6 +125,7 @@ export function SettingsPage() {
   const { familySize, setFamilySize } = useFamilySize()
   const { flags, setFlag } = useFeatureFlags()
   const { enabled: defaultHabituelsEnabled, toggle: toggleDefaultHabituels } = useDefaultHabituels()
+  const { homePage, setHomePage, available: homePageOptions } = useHomePage()
   const navigate = useNavigate()
   const [config, setConfig] = useState<LLMConfig>(() => llmConfigService.load())
   const envFields = getLLMEnvFields()
@@ -228,7 +230,7 @@ export function SettingsPage() {
         icon={<Palette className="h-4 w-4 text-primary" />}
         iconBg="bg-primary/8"
         title="Apparence"
-        subtitle="Thème et couleur d'accent"
+        subtitle="Thème, couleur d'accent et page d'accueil"
       >
         <div className="space-y-2.5">
           <Label>Thème</Label>
@@ -283,6 +285,35 @@ export function SettingsPage() {
                 {accentColor.id === color.id && (
                   <Check className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow" />
                 )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <div>
+            <Label>Page d'accueil</Label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Page affichée à l'ouverture de Bonap
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {homePageOptions.map(({ to, label, icon: Icon }) => (
+              <button
+                key={to}
+                type="button"
+                onClick={() => setHomePage(to)}
+                aria-pressed={homePage === to}
+                className={cn(
+                  'flex items-center gap-2 rounded-[var(--radius-lg)] border px-3.5 py-2',
+                  'text-sm font-semibold transition-all duration-150',
+                  homePage === to
+                    ? 'border-primary bg-primary text-primary-foreground shadow-[0_1px_3px_oklch(0.58_0.175_38/0.25)]'
+                    : 'border-border bg-card text-foreground hover:bg-secondary',
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
               </button>
             ))}
           </div>
