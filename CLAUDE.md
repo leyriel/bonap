@@ -190,7 +190,7 @@ Auth `Authorization: Bearer <VITE_MEALIE_TOKEN>`. Erreurs 401/404/5xx mappées. 
 
 | Route | Page | Description |
 |-------|------|-------------|
-| `/` | → redirect `/recipes` | |
+| `/` | → redirect vers la page d'accueil choisie (`HomeRedirect`, défaut `/recipes`) | |
 | `/recipes` | `RecipesPage` | Grille de recettes avec filtres (search, catégories, tags, durée, saisons), scroll infini |
 | `/recipes/new` | `RecipeFormPage` | Formulaire création recette |
 | `/recipes/:slug/edit` | `RecipeFormPage` | Formulaire édition recette |
@@ -240,6 +240,7 @@ Auth `Authorization: Bearer <VITE_MEALIE_TOKEN>`. Erreurs 401/404/5xx mappées. 
 | `useAssistant()` | Chat assistant avec historique, tools, streaming |
 | `useTheme()` | Thème + couleur d'accent avec ThemeService |
 | `useSidebar()` | État ouvert/fermé sidebar (mobile) |
+| `useHomePage()` | Page d'accueil (route `/`) : `homePage` choisi, `resolved` réellement atteignable, `available` = destinations proposables |
 
 ---
 
@@ -303,6 +304,12 @@ Deux modes : `llmChat` (single-turn, SuggestionsPage) et `sendAssistantMessage` 
 - **Nommage** : PascalCase composants/classes, camelCase utils/hooks. Use cases `<Verbe><Nom>UseCase.ts`. Hooks `use<Nom>.ts` (préfixe `use` obligatoire). Named exports partout (sauf `App.tsx`/`main.tsx`).
 - **État** : `useState`/`useCallback` + optimistic updates (pattern `useShopping.toggleItem` — flip immédiat, rollback si erreur). Pas de store global.
 - **Scroll infini** : `useRecipesInfinite` avec `loadingRef` (anti double-fetch) + `filtersKey` sérialisé (arrays triés) pour reset stable.
+
+## 8bis. Navigation
+
+`shared/constants/navigation.ts` (`NAV_ROUTES` + `visibleNavRoutes`) est la source unique des destinations principales — sans icône, pour rester lisible depuis l'infrastructure. `presentation/components/navItems.ts` y associe les icônes lucide (`visibleNavItems`). Sidebar et sélecteur de page d'accueil consomment ce module : ajouter une entrée de navigation se fait à un seul endroit.
+
+**Page d'accueil** (issue #158) : la route `/` redirige vers la préférence enregistrée (`HomePageService`, localStorage `bonap_home_page`, synchronisée serveur via `SERVER_SETTINGS_KEYS`). Réglable dans Paramètres → Apparence. Une valeur hors `NAV_ROUTES` ou pointant vers Suggestions IA sans fournisseur configuré retombe sur `/recipes`.
 
 ## 9. Thème
 
