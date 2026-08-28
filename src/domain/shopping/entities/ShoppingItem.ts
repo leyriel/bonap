@@ -24,6 +24,12 @@ export interface ShoppingItem {
   quantity?: number
   unit?: ShoppingUnit
   foodName?: string
+  /**
+   * Mealie food id backing this item, when `isFood` is true.
+   * Must be sent back on every update: the PUT replaces the whole item, so
+   * omitting it detaches the food and the item loses its name and unit.
+   */
+  foodId?: string
   label?: ShoppingLabel
   /** Display text (computed by Mealie or raw note) */
   display?: string

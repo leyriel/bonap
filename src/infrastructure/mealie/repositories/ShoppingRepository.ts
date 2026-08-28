@@ -36,6 +36,7 @@ function mapItem(raw: MealieShoppingItem, recipeById: Map<string, string> = new 
         }
       : undefined,
     foodName: raw.food?.name,
+    foodId: raw.food?.id,
     label: raw.label
       ? { id: raw.label.id, name: raw.label.name, color: raw.label.color }
       : undefined,
@@ -128,6 +129,7 @@ export class ShoppingRepository implements IShoppingRepository {
       isFood: item.isFood,
       note: item.note,
       quantity: item.quantity,
+      foodId: item.foodId,
       display: item.display,
       source: "mealie",
     }

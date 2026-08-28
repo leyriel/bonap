@@ -1,6 +1,6 @@
 # CLAUDE.md — Bonap
 
-Mémoire projet pour Claude Code. Compressée depuis les 5 livrables `docs/` (MVP-SCOPE, PDL, SDLC, ROADMAP, MVP-EXEC). Mis à jour : 2026-08-10.
+Mémoire projet pour Claude Code. Compressée depuis les 5 livrables `docs/` (MVP-SCOPE, PDL, SDLC, ROADMAP, MVP-EXEC). Mis à jour : 2026-08-28.
 
 ## 1. Projet
 
@@ -324,6 +324,7 @@ npm run preview  # Prévisualisation prod
 - **Saisons** : Mealie ne connaît pas les saisons nativement. Tags préfixe `saison-` (ex: `saison-ete`). Résoudre les IDs via GET `/api/organizers/tags` avant PATCH.
 - **`perPage=-1`** : OK pour référentiels (foods, units, categories, tags). **Pas pour recettes** (potentiellement des milliers).
 - **updateItem shopping** : PUT peut retourner `null` (certaines versions Mealie) — fallback sur données envoyées.
+- **PUT shopping items = remplacement complet, pas un patch** : un payload sans `foodId` / `unitId` **détache l'aliment et l'unité** de l'article côté Mealie. Au rechargement, `food` et `unit` sont `null` : les articles issus de recettes (`isFood: true`, `note` vide) perdent leur nom et s'affichent « Article sans nom ». Toujours construire le payload via `toItemUpdate(item, listId, patch)` (`shared/utils/shoppingItemUpdate.ts`), jamais à la main. C'était la cause de la perte d'articles après le tri IA de la liste de courses (`useCategorizeItems` met à jour tous les articles non catégorisés d'un coup).
 - **Durées** : formulaire en minutes integer, API en ISO 8601 (`PT30M`). Conversion dans `RecipeRepository.minutesToIso()`. `formatDuration()` accepte les deux formats.
 - **resolveIngredients** : 2 appels API (foods + units) à chaque create/update. Aliments créés auto, unités non créées (unitId reste undefined → texte libre).
 - **Anthropic-only streaming + tool use** : les 8 autres providers ont fallback single-turn sans tools — documenté dans Settings.
@@ -332,6 +333,7 @@ npm run preview  # Prévisualisation prod
 ### Shopping
 - L'ajout d'un item existant (même `foodKey`) **incrémente la quantité** plutôt que de dupliquer
 - La liste "Bonap" et "Habituels" sont auto-créées dans Mealie si elles n'existent pas
+- **Tri IA** (`useCategorizeItems`) : applique d'abord les labels connus du `FoodLabelStore`, puis un seul appel `llmChat` pour le reste. Chaque affectation passe par `updateItemLabel` → `toItemUpdate` (voir piège PUT ci-dessus).
 - **Habituels** : créés avec `isFood: true` et un `foodId` résolu (création à la volée si l'aliment n'existe pas dans Mealie). Évite l'enregistrement en simple texte (note) qui empêchait le typage.
 
 ### Portions / scaling
