@@ -326,6 +326,7 @@ npm run preview  # Prévisualisation prod
 - **updateItem shopping** : PUT peut retourner `null` (certaines versions Mealie) — fallback sur données envoyées.
 - **PUT shopping items = remplacement complet, pas un patch** : un payload sans `foodId` / `unitId` **détache l'aliment et l'unité** de l'article côté Mealie. Au rechargement, `food` et `unit` sont `null` : les articles issus de recettes (`isFood: true`, `note` vide) perdent leur nom et s'affichent « Article sans nom ». Toujours construire le payload via `toItemUpdate(item, listId, patch)` (`shared/utils/shoppingItemUpdate.ts`), jamais à la main. C'était la cause de la perte d'articles après le tri IA de la liste de courses (`useCategorizeItems` met à jour tous les articles non catégorisés d'un coup).
 - **Durées** : formulaire en minutes integer, API en ISO 8601 (`PT30M`). Conversion dans `RecipeRepository.minutesToIso()`. `formatDuration()` accepte les deux formats.
+- **PUT `/api/recipes/:slug` = remplacement complet** : `update()` repart de `current` et fusionne. Pour `recipeInstructions`, la fusion se fait par `id` — n'envoyer que `{ id, text }` effacerait `title` et surtout `ingredientReferences` (ingrédients associés à l'étape). Même famille de piège que le PUT shopping.
 - **resolveIngredients** : 2 appels API (foods + units) à chaque create/update. Aliments créés auto, unités non créées (unitId reste undefined → texte libre).
 - **Anthropic-only streaming + tool use** : les 8 autres providers ont fallback single-turn sans tools — documenté dans Settings.
 - **OpenCode Go/Zen** : pas de CORS header → proxy Vite/nginx (`/api/opencode-go`, `/api/opencode`), comme Ollama.
@@ -335,6 +336,10 @@ npm run preview  # Prévisualisation prod
 - La liste "Bonap" et "Habituels" sont auto-créées dans Mealie si elles n'existent pas
 - **Tri IA** (`useCategorizeItems`) : applique d'abord les labels connus du `FoodLabelStore`, puis un seul appel `llmChat` pour le reste. Chaque affectation passe par `updateItemLabel` → `toItemUpdate` (voir piège PUT ci-dessus).
 - **Habituels** : créés avec `isFood: true` et un `foodId` résolu (création à la volée si l'aliment n'existe pas dans Mealie). Évite l'enregistrement en simple texte (note) qui empêchait le typage.
+
+### Mode cuisine
+- **Ingrédients par étape** (issue #38) : Mealie relie une étape à ses ingrédients via `instruction.ingredientReferences[].referenceId` ↔ `ingredient.referenceId`. `ingredientsForInstruction()` (`shared/utils/instructionIngredients.ts`) fait la jointure ; `CookingMode` affiche l'encart « Pour cette étape » avec les quantités mises à l'échelle des portions. L'encart disparaît si la recette n'associe rien.
+- **L'association se crée dans Mealie**, pas dans Bonap — le formulaire Bonap ne l'édite pas, mais ne l'écrase plus (voir piège PUT recette).
 
 ### Portions / scaling
 - **Lecture** : toujours `getRecipeServings(recipe)`, jamais `parseServings(recipe.recipeYield)` — voir `shared/utils/servings.ts`. Le bug #14 venait précisément de cette confusion.

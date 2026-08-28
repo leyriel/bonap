@@ -38,10 +38,21 @@ export interface MealieIngredient {
   title?: string
 }
 
+/** Lien d'une étape vers un ingrédient de la recette (Mealie associe par `referenceId`). */
+export interface MealieIngredientReference {
+  referenceId: string
+}
+
 export interface MealieInstruction {
   id: string
   title?: string
+  summary?: string
   text: string
+  /**
+   * Ingrédients associés à l'étape dans Mealie. À préserver lors des PUT :
+   * réécrire une étape sans ce champ efface les associations côté serveur.
+   */
+  ingredientReferences?: MealieIngredientReference[]
 }
 
 export interface MealieCategory {
