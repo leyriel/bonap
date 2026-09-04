@@ -25,6 +25,8 @@ dist-ssr
 .env
 
 docker-compose.dev.yml
+docker-compose.local-prod.yml
+.env.local-prod
 
 # Playwright
 playwright-report/
