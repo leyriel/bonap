@@ -1,0 +1,11 @@
+services:
+  bonap:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bonap-local-prod
+    ports:
+      - "5173:80"
+    env_file:
+      - .env.local-prod
+    restart: unless-stopped
